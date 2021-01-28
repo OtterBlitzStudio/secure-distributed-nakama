@@ -63,9 +63,9 @@ spec:
           subPath: config.yml
         env:
           - name: CONSOLE_PORT
-            value: {{ .Values.nakama.port | add1 }}
+            value: {{ .Values.nakama.port | add1 | quote }}
           - name: SOCKET_PORT
-            value: {{ .Values.nakama.port }}
+            value: {{ .Values.nakama.port | quote}}
 {{ if .Values.nakama.withPodInfo }}
           - name: MY_POD_IP
             valueFrom:

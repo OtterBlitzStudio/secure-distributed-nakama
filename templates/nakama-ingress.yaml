@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Release.Name }}-lb
@@ -19,15 +19,19 @@ spec:
       http:
         paths:
           - backend:
-              serviceName: {{ .Release.Name }}
-              servicePort: {{ .Values.nakama.port  }}
+              service:
+                name: {{ .Release.Name }}
+                port:
+                  number: {{ .Values.nakama.port  }}
             path: /
     {{ if .Values.ingress.adminHost }}
     - host: {{ .Values.ingress.adminHost }}
       http:
         paths:
           - backend:
-              serviceName: {{ .Release.Name }}
-              servicePort: {{ .Values.nakama.port | add1 }}
+              service:
+                name: {{ .Release.Name }}
+                port:
+                  number: {{ .Values.nakama.port | add1 }}
             path: /
     {{ end }}
