@@ -24,6 +24,7 @@ spec:
                 port:
                   number: {{ .Values.nakama.port  }}
             path: /
+            pathType: Prefix
     {{ if .Values.ingress.adminHost }}
     - host: {{ .Values.ingress.adminHost }}
       http:
@@ -34,4 +35,5 @@ spec:
                 port:
                   number: {{ .Values.nakama.port | add1 }}
             path: /
+            pathType: Prefix
     {{ end }}
