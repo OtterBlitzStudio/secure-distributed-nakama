@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    service: {{ .Release.Name }}
+  ports:
+  - name: {{ sub .Values.nakama.port 1 | quote }}
+    port: {{ sub .Values.nakama.port 1 }}
+    targetPort: {{ sub .Values.nakama.port 1 }}
+  - name: {{ .Values.nakama.port  | quote}}
+    port: {{ .Values.nakama.port  }}
+    targetPort: {{ .Values.nakama.port  }}
+  - name: {{ .Values.nakama.port | add1 | quote}}
+    port: {{ .Values.nakama.port | add1 }}
+    targetPort: {{ .Values.nakama.port | add1 }}

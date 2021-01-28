@@ -1,0 +1,34 @@
+nfsServer: 
+  clusterIP: nfs-server.default.svc.cluster.local
+  pvcStorage: 100Mi
+  pvStorage: 10Gi
+
+
+ingress:
+  class: nginx
+  adminHost: OPTIONAL
+  serviceHost: TODO
+  certManagerIssuerName: TODO
+
+secrets:
+  dbUser: TODO
+  db: TODO
+  socketServerKey: TODO
+  sessionEncryptionKey: TODO
+  runtimeHttpKey: TODO
+  consolePassword: TODO
+  consoleSigningKey : TODO
+
+nakama:
+  withPodInfo: true
+  replicas: 3
+  port: 7350
+  image: heroiclabs/nakama:2.14.1
+  resources:
+    requests:
+      memory: 100Mi
+      cpu: 100m
+    limits:
+      memory: 100Mi
+      cpu: 100m
+

@@ -1,0 +1,141 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    service: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.nakama.replicas }}
+  selector:
+    matchLabels:
+      service: {{ .Release.Name }}
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        service: {{ .Release.Name }}
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -ecx
+        - >   
+            /nakama/nakama migrate up 
+            --database.address "$(DB_USER)@$(DB)?sslmode=require" &&
+            exec /nakama/nakama 
+            --name nakama             
+            --config /nakama/data/config.yml
+            --database.address "$(DB_USER)@$(DB)?sslmode=require"           
+            --socket.server_key $(SOCKET_SERVER_KEY)
+            --session.encryption_key $(SESSION_ENCRYPTION_KEY)
+            --runtime.http_key $(RUNTIME_HTTP_KEY)            
+            --console.password $(CONSOLE_PASSWORD)
+            --console.signing_key $(CONSOLE_SIGNING_KEY)    
+            --console.port $(CONSOLE_PORT) 
+            --socket.port $(SOCKET_PORT) 
+{{ if .Values.nakama.withPodInfo }}
+            --runtime.env "podName=$(MY_POD_NAME)"   
+            --runtime.env "podIP=$(MY_POD_IP)"   
+            --runtime.env "podUID=$(MY_POD_UID)" 
+{{end}}
+        image: {{ .Values.nakama.image }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.nakama.port }}
+          failureThreshold: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+        name: {{ .Release.Name }}
+        ports:
+        - containerPort: {{ sub .Values.nakama.port 1 }}
+        - containerPort: {{ .Values.nakama.port }}
+        - containerPort: {{ .Values.nakama.port | add1 }}
+        volumeMounts:
+        - name: {{ .Release.Name }}-secrets
+          mountPath: /nakama/nakama-secrets         
+        - name: {{ .Release.Name }}-modules
+          mountPath: /nakama/data/modules       
+        - name: {{ .Release.Name }}-config
+          mountPath: /nakama/data/config.yml
+          subPath: config.yml
+        env:
+          - name: CONSOLE_PORT
+            value: {{ .Values.nakama.port | add1 }}
+          - name: SOCKET_PORT
+            value: {{ .Values.nakama.port }}
+{{ if .Values.nakama.withPodInfo }}
+          - name: MY_POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: MY_POD_UID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
+{{end}}
+          - name: DB
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secrets
+                key: db
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secrets
+                key: dbUser
+          - name: SOCKET_SERVER_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secrets
+                key: socketServerKey
+          - name: SESSION_ENCRYPTION_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secrets
+                key: sessionEncryptionKey
+          - name: RUNTIME_HTTP_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secrets
+                key: runtimeHttpKey
+          - name: CONSOLE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secrets
+                key: consolePassword
+          - name: CONSOLE_SIGNING_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secrets
+                key:  consoleSigningKey
+{{if .Values.nakama.resources }}
+        resources:
+          requests:
+            memory:  {{ .Values.nakama.resources.requests.memory }}
+            cpu: {{ .Values.nakama.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.nakama.resources.limits.memory }}
+            cpu: {{ .Values.nakama.resources.limits.cpu }}
+{{end}}
+      restartPolicy: Always
+      volumes:
+      - name: {{ .Release.Name }}-secrets
+        secret:
+          secretName: {{ .Release.Name }}-secrets
+      - name: {{ .Release.Name }}-modules
+        persistentVolumeClaim:
+          claimName:  {{ .Release.Name }}-modules
+      - name: {{ .Release.Name }}-config
+        configMap:
+          name: {{ .Release.Name }}-config
+          items:
+          - key: config.yml
+            path: config.yml
+    

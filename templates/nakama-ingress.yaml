@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-lb
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.ingress.class }} 
+    cert-manager.io/issuer: {{ .Values.ingress.certManagerIssuerName }} 
+spec:
+  tls:
+  - hosts:
+    - {{ .Values.ingress.serviceHost }}   
+    {{ if .Values.ingress.adminHost }}   
+    - {{ .Values.ingress.adminHost }}   
+    {{ end }}
+    secretName: {{ .Release.Name }}-tls-certificate
+  rules:
+    - host: {{ .Values.ingress.serviceHost }} 
+      http:
+        paths:
+          - backend:
+              serviceName: {{ .Release.Name }}
+              servicePort: {{ .Values.nakama.port  }}
+            path: /
+    {{ if .Values.ingress.adminHost }}
+    - host: {{ .Values.ingress.adminHost }}
+      http:
+        paths:
+          - backend:
+              serviceName: {{ .Release.Name }}
+              servicePort: {{ .Values.nakama.port | add1 }}
+            path: /
+    {{ end }}
