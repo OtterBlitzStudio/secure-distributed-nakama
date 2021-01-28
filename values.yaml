@@ -5,6 +5,7 @@ nfsServer:
 
 
 ingress:
+  cluster: true
   class: nginx
   adminHost: OPTIONAL
   serviceHost: TODO
