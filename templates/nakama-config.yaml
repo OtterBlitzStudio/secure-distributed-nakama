@@ -4,10 +4,16 @@ metadata:
   name: {{ .Release.Name }}-config
   namespace: {{ .Release.Namespace }}
 data:
-  config.yml: |-
-{{- range $key, $value  := .Files.Get "custom-config.yaml" | fromYaml   }}
-    {{ $key }}: 
-{{- range $innerKey, $innerValue := $value   }}
-      {{ $innerKey }}: {{ $innerValue }}
-{{end}}
-{{end}}
+{{- if .Values.config}}
+{{- $config := ""}}
+{{- range $key, $value := .Values.config }}
+    {{- $valueAsString := ""}}
+    {{- range $vk, $innerV := $value }}
+    {{- $valueAsString = (printf "%s %s: %v\n " $valueAsString $vk $innerV)  }}
+    {{- end}}
+{{- $config = ( printf "%s%s:\n %s \n" $config $key $valueAsString )}}
+{{- end}}    
+  config.yml: {{ $config | quote}}
+{{- else}}
+  config.yml: ""
+{{- end}}

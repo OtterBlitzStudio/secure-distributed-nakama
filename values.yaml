@@ -1,24 +1,13 @@
-nfsServer: 
-  clusterIP: nfs-server.default.svc.cluster.local
-  pvcStorage: 100Mi
-  pvStorage: 10Gi
-
-
 ingress:
   cluster: true
   class: nginx
-  adminHost: OPTIONAL
-  serviceHost: TODO
-  certManagerIssuerName: TODO
+  adminHost: false
+  serviceHost: 
+  certManagerIssuerName: letsencrypt-production
 
-secrets:
-  dbUser: TODO
-  db: TODO
-  socketServerKey: TODO
-  sessionEncryptionKey: TODO
-  runtimeHttpKey: TODO
-  consolePassword: TODO
-  consoleSigningKey : TODO
+pvc:
+  name: 
+  size: 100Mi
 
 nakama:
   withPodInfo: true

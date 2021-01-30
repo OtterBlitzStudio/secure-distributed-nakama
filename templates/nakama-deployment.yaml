@@ -56,7 +56,7 @@ spec:
         volumeMounts:
         - name: {{ .Release.Name }}-secrets
           mountPath: /nakama/nakama-secrets         
-        - name: {{ .Release.Name }}-modules
+        - name: {{ required "A valid .Values.pvc.name entry required!" .Values.pvc.name }}
           mountPath: /nakama/data/modules       
         - name: {{ .Release.Name }}-config
           mountPath: /nakama/data/config.yml
@@ -129,9 +129,9 @@ spec:
       - name: {{ .Release.Name }}-secrets
         secret:
           secretName: {{ .Release.Name }}-secrets
-      - name: {{ .Release.Name }}-modules
+      - name: {{ required "A valid .Values.pvc.name entry required!" .Values.pvc.name }}
         persistentVolumeClaim:
-          claimName:  {{ .Release.Name }}-modules
+          claimName:  {{ required "A valid .Values.pvc.name entry required!" .Values.pvc.name }}
       - name: {{ .Release.Name }}-config
         configMap:
           name: {{ .Release.Name }}-config

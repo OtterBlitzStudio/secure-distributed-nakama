@@ -13,13 +13,13 @@ metadata:
 spec:
   tls:
   - hosts:
-    - {{ .Values.ingress.serviceHost }}   
+    - {{ required "A valid .Values.ingress.serviceHost entry required!"  .Values.ingress.serviceHost }}   
     {{ if .Values.ingress.adminHost }}   
     - {{ .Values.ingress.adminHost }}   
     {{ end }}
     secretName: {{ .Release.Name }}-tls-certificate
   rules:
-    - host: {{ .Values.ingress.serviceHost }} 
+    - host: {{ required "A valid .Values.ingress.serviceHost entry required!"  .Values.ingress.serviceHost }} 
       http:
         paths:
           - backend:
