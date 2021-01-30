@@ -1,43 +1,61 @@
+{{- if .Values.ingress.beta}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else}}
 apiVersion: networking.k8s.io/v1
+{{- end}}
 kind: Ingress
 metadata:
   name: {{ .Release.Name }}-lb
   namespace: {{ .Release.Namespace }}
   annotations:
     kubernetes.io/ingress.class: {{ .Values.ingress.class }} 
-{{if .Values.ingress.cluster}}
-    cert-manager.io/cluster-issuer: {{ .Values.ingress.certManagerIssuerName }} 
-{{else}}
-    cert-manager.io/issuer: {{ .Values.ingress.certManagerIssuerName }} 
-{{end}}
+{{- if .Values.ingress.cluster}}
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.certManagerIssuerName | quote}} 
+{{- else}}
+    cert-manager.io/issuer: {{ .Values.ingress.certManagerIssuerName | quote}} 
+{{- end}}
 spec:
   tls:
   - hosts:
-    - {{ required "A valid .Values.ingress.serviceHost entry required!"  .Values.ingress.serviceHost }}   
-    {{ if .Values.ingress.adminHost }}   
-    - {{ .Values.ingress.adminHost }}   
-    {{ end }}
+    - {{ required "A valid .Values.ingress.serviceHost entry required!"  .Values.ingress.serviceHost | quote}}   
+    {{- if .Values.ingress.adminHost }}   
+    - {{ .Values.ingress.adminHost | quote}}   
+    {{- end }}
     secretName: {{ .Release.Name }}-tls-certificate
   rules:
-    - host: {{ required "A valid .Values.ingress.serviceHost entry required!"  .Values.ingress.serviceHost }} 
+    - host: {{ required "A valid .Values.ingress.serviceHost entry required!"  .Values.ingress.serviceHost | quote}} 
       http:
         paths:
           - backend:
+{{- if .Values.ingress.beta}}
+              serviceName: {{ .Release.Name }}
+              servicePort: {{ .Values.nakama.port  }}
+{{- else}}
               service:
                 name: {{ .Release.Name }}
                 port:
                   number: {{ .Values.nakama.port  }}
+{{- end}}
             path: /
+{{- if eq .Values.ingress.beta false}}
             pathType: Prefix
+{{- end}}
     {{ if .Values.ingress.adminHost }}
-    - host: {{ .Values.ingress.adminHost }}
+    - host: {{ .Values.ingress.adminHost | quote}}
       http:
         paths:
           - backend:
+{{- if .Values.ingress.beta}}
+              serviceName: {{ .Release.Name }}
+              servicePort: {{ .Values.nakama.port  add 1}}
+{{- else}}
               service:
                 name: {{ .Release.Name }}
                 port:
-                  number: {{ .Values.nakama.port | add1 }}
+                  number: {{ .Values.nakama.port  add 1}}
+{{- end}}
             path: /
+{{- if eq .Values.ingress.beta false}}
             pathType: Prefix
+{{- end}}
     {{ end }}

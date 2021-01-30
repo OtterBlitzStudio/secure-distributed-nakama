@@ -1,4 +1,5 @@
 ingress:
+  beta: false
   cluster: true
   class: nginx
   adminHost: false
